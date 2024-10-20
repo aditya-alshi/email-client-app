@@ -1,26 +1,32 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { useSelector } from "react-redux";
+import Header from "./components/Header/Header";
+import Main from "./components/Main/Main";
+import {
+  selectMetaEmails,
+} from "./features/emails/emailSlice";
+import { emailMetaData } from "./utils/persistantStorage";
+import { useEffect } from "react";
 
-function App() {
+export default function App() {
+    
+    let metaEmails: emailMetaData[] = useSelector(selectMetaEmails);
+    
+  useEffect(() => {
+    function saveOnTermination() {
+      localStorage.setItem("emailsMeta", JSON.stringify(metaEmails));
+    }
+
+    window.addEventListener("beforeunload", saveOnTermination);
+
+    return () => {
+      window.removeEventListener("beforeunload", saveOnTermination);
+    };
+  }, [metaEmails]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className=" w-[75rem] m-auto mt-6 ">
+      <Header />
+      <Main />
     </div>
   );
 }
-
-export default App;

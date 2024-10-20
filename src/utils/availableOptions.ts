@@ -1,0 +1,1 @@
+export const availableOptions = ["allMails", "favorited", "read", "unread"];
