@@ -52,6 +52,21 @@ export const emailSlice = createSlice({
             }
         },
 
+        favoriteAnEmail(state, action) {
+            const data = action.payload
+            const id = parseInt(data.id)
+            
+            const targetMeta = state.emailMeta.find(meta => {
+                return (typeof meta.id === "string") ? parseInt(meta.id) === id : meta.id === id
+            })
+
+            if (targetMeta) {
+                targetMeta.favorite = true // immer will handle it
+            } else {
+                state.emailMeta.push({ id: id, favorite: true })
+            }
+        }
+
     },
     extraReducers: builder => {
         builder.addCase(emailThunk.pending, (state, action) => {
@@ -63,7 +78,7 @@ export const emailSlice = createSlice({
     }
 })
 
-export const { readAnEmail } = emailSlice.actions;
+export const { readAnEmail, favoriteAnEmail } = emailSlice.actions;
 export const { setPage } = emailSlice.actions
 
 // Seletors 

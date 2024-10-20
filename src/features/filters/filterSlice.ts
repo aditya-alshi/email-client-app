@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { RootState } from "../../app/store";
 
-type filterState = {filter: "allMails" | "favorited" | "read" | "unread"}
+type filterState = {filter: "allMails" | "favorite" | "read" | "unread"}
 const initialState: filterState = {filter: "allMails"} 
 
 const filterSlice = createSlice({
@@ -9,7 +9,7 @@ const filterSlice = createSlice({
     initialState,
     reducers: {
         chageFilter(state, action) {
-            state = action.payload.filterOption
+            state.filter = action.payload.filterOption
         }
     }
 })

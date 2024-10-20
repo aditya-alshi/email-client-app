@@ -1,6 +1,6 @@
 export type emailMetaData = {
     id: number;
-    read: boolean;
+    read ?: boolean;
     favorite?: boolean
 }
 
@@ -9,7 +9,6 @@ export function addDataToLocalStorage(data: emailMetaData[]) {
 }
 
 export function fetchDataFromLocalStorage(): emailMetaData[] {
-    console.log("boro boro")
     const storedEmailMeta = localStorage.getItem('emailsMeta')
     if(storedEmailMeta && storedEmailMeta.length > 0 ) {
         return JSON.parse(storedEmailMeta)

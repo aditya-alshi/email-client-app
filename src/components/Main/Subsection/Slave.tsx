@@ -1,13 +1,23 @@
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   selectEmailBody,
   selectEmailDate,
+  selectSlaveId,
+  selectFavorite,
+  favoriteTheSlave
 } from "../../../features/emails/slaveSlice";
+import {
+  favoriteAnEmail,
+  readAnEmail
+} from '../../../features/emails/emailSlice'
 import { format } from "date-fns";
 
 export default function Slave() {
+  const dispatch = useDispatch();
   const emailBody = useSelector(selectEmailBody);
   const emailDate = useSelector(selectEmailDate);
+  const slaveId = useSelector(selectSlaveId);
+  const favorite = useSelector(selectFavorite)
   const date = new Date(emailDate || Date.now());
   const formattedDate = format(date, "dd/MM/yyyy hh:mma").toLowerCase();
 
@@ -24,8 +34,13 @@ export default function Slave() {
         <button
           type="button"
           className=" w-[9rem] h-10 border rounded-full p-1 bg-accent text-white "
+          onClick={() => {
+            dispatch(favoriteAnEmail({id: slaveId}));
+            dispatch(favoriteTheSlave());
+          }}
         >
-          Mark as favorite
+          {favorite? "Favorited": "Mark as favorite"}
+          
         </button>
       </div>
       <section

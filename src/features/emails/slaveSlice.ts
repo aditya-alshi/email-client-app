@@ -2,9 +2,9 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
 import { fetchEmailById } from "./emailAPI";
 import { RootState } from "../../app/store";
 
-export const emailBodyThunk = createAsyncThunk('slave/fetchEmailBody', async ({id, date}:{id : number | string , date:Date} ) => {
+export const emailBodyThunk = createAsyncThunk('slave/fetchEmailBody', async ({id, date, favorite}:{id : number | string , date:Date, favorite: boolean} ) => {
     const response = await fetchEmailById(id);
-    return {response, date }
+    return {response, date, favorite }
 })
 
 interface EmailBody {
@@ -12,7 +12,8 @@ interface EmailBody {
     emailBody: string | null;
     loading : boolean;
     error: string | null;
-    date: Date | null
+    date: Date | null;
+    favorite: boolean
 }
 
 const initialState: EmailBody = {
@@ -20,7 +21,8 @@ const initialState: EmailBody = {
     emailBody: null,
     loading: false,
     error: null,
-    date: null
+    date: null,
+    favorite: false
 }
 
 const slaveSlice = createSlice({
@@ -32,7 +34,11 @@ const slaveSlice = createSlice({
             state.emailBody = null;
             state.loading = false;
             state.error = null;
-            state.date = null
+            state.date = null;
+            state.favorite = false
+        },
+        favoriteTheSlave(state){
+            state.favorite = true;
         }
     },
     extraReducers: builder => {
@@ -47,6 +53,7 @@ const slaveSlice = createSlice({
                 state.emailBody = action.payload.response.body;
                 state.slaveId = action.payload.response.id;
                 state.date = action.payload.date
+                state.favorite = action.payload.favorite
             })
             .addCase(emailBodyThunk.rejected, (state, action) => {
                 state.loading = false;
@@ -56,8 +63,9 @@ const slaveSlice = createSlice({
 })
 
 export default slaveSlice.reducer
-export const { removeSlaveId } = slaveSlice.actions
+export const { removeSlaveId, favoriteTheSlave } = slaveSlice.actions
 
 export const selectEmailBody = (state: RootState) => state.slave.emailBody
 export const selectEmailDate = (state: RootState) => state.slave.date
 export const selectSlaveId = (state: RootState) => state.slave.slaveId
+export const selectFavorite = (state: RootState) => state.slave.favorite

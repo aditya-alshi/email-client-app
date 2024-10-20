@@ -13,6 +13,9 @@ import {
   removeSlaveId,
   selectSlaveId,
 } from "../../../features/emails/slaveSlice";
+import {
+  emailMetaData
+} from "../../../utils/persistantStorage"
 import { AppDispatch, RootState } from "../../../app/store";
 import { format } from "date-fns";
 import { selectFilter } from "../../../features/filters/filterSlice";
@@ -25,14 +28,37 @@ const masterSelector = createSelector(
     (state: RootState) => state.filter.filter,
 
     (list, localList, filter) => {
-        if((!localList || localList.length < 1) && filter === "allMails") {
-            return list
+      
+      console.log("filter is ", filter)
+        let localListTemp:emailMetaData[] = localList
+        if (localList && localList.length > 0) {
+          if(filter === "favorite") {
+            const filteredFavorite = localList.filter(localMail => localMail.favorite)
+            filteredFavorite.length > 0 ? localListTemp = filteredFavorite: localListTemp = localList
+          }else if(filter === "read"){
+            const filteredRead = localList.filter(localMail => localMail.read)
+            filteredRead.length > 0 ? localListTemp = filteredRead: localListTemp = localList
+          }else if(filter === "unread"){
+            const filteredUnread = localList.filter(localMail => !localMail.read)
+            filteredUnread.length > 0 ? localListTemp = filteredUnread: localListTemp = localList
+          }
+    
+          const mergedWithLocal = list.map((mail) => {
+            const localMail = localListTemp.find((lm) => lm.id == mail.id);
+            return localMail? { ...localMail, ...mail } : { ...mail}
+          });
+          return mergedWithLocal;
         }
+        return list;
+        
     }
 )
 
 export default function Master() {
 
+  console.log("Maaaassster")
+
+  const master = useSelector(masterSelector);
   const list = useSelector(selectAllEmails);
   const localEmailsData = useSelector(selectMetaEmails);
   const slaveId = useSelector(selectSlaveId);
@@ -43,21 +69,21 @@ export default function Master() {
 
   const dispatch: AppDispatch = useDispatch();
 
-  const allMails = () => {
-    if (localEmailsData && localEmailsData.length > 0) {
-      const mergedWithLocal = list.map((mail) => {
-        const localMail = localEmailsData.find((lm) => lm.id == mail.id);
-        return localMail
-          ? { ...localMail, ...mail }
-          : { ...mail, read: false, favorite: false };
-      });
-      return mergedWithLocal;
-    }
-    return list;
-  };
+  // const allMails = () => {
+  //   if (localEmailsData && localEmailsData.length > 0) {
+  //     const mergedWithLocal = list.map((mail) => {
+  //       const localMail = localEmailsData.find((lm) => lm.id == mail.id);
+  //       return { ...localMail, ...mail }
+  //     });
+  //     return mergedWithLocal;
+  //   }
+  //   return list;
+  // };
+
+  
 
 
-  const renderMails = allMails().map((mail) => {
+  const renderMails = master.map((mail) => {
     const date = new Date(mail.date || Date.now());
     const formattedDate = format(date, "dd/MM/yyyy hh:mma").toLowerCase();
     return (
@@ -70,7 +96,7 @@ export default function Master() {
         key={mail.id}
         onClick={(e) => {
           dispatch(readAnEmail({ id: mail.id, read: true }));
-          dispatch(emailBodyThunk({ id: mail.id, date: mail.date }));
+          dispatch(emailBodyThunk({ id: mail.id, date: mail.date, favorite: mail.favorite || false }));
         }}
       >
         <div className="flex justify-center items-center w-12 h-12 rounded-full bg-accent text-white text-2xl font-semibold aspect-square">
@@ -106,7 +132,7 @@ export default function Master() {
             >
               {formattedDate}
             </p>
-            <p className="text-accent font-semibold mr-auto ">Favorite</p>
+            <p className="text-accent font-semibold mr-auto ">{mail.favorite? "Favorite": ""}</p>
           </div>
         </div>
       </div>
