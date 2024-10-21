@@ -23,40 +23,59 @@ import { createSelector } from "@reduxjs/toolkit";
 import { Email } from "../../../features/emails/emailAPI";
 
 const masterSelector = createSelector(
-    (state: RootState) => state.emails.emails,
-    (state: RootState) => state.emails.emailMeta,
-    (state: RootState) => state.filter.filter,
+  (state: RootState) => state.emails.emails,
+  (state: RootState) => state.emails.emailMeta,
+  (state: RootState) => state.filter.filter,
 
-    (list, localList, filter) => {
-      
-      console.log("filter is ", filter)
-        let localListTemp:emailMetaData[] = localList
-        if (localList && localList.length > 0) {
-          if(filter === "favorite") {
-            const filteredFavorite = localList.filter(localMail => localMail.favorite)
-            filteredFavorite.length > 0 ? localListTemp = filteredFavorite: localListTemp = localList
-          }else if(filter === "read"){
-            const filteredRead = localList.filter(localMail => localMail.read)
-            filteredRead.length > 0 ? localListTemp = filteredRead: localListTemp = localList
-          }else if(filter === "unread"){
-            const filteredUnread = localList.filter(localMail => !localMail.read)
-            filteredUnread.length > 0 ? localListTemp = filteredUnread: localListTemp = localList
-          }
+  (list, localList, filter) => {
+    if (!localList || localList.length === 0) return list;
+
     
-          const mergedWithLocal = list.map((mail) => {
-            const localMail = localListTemp.find((lm) => lm.id == mail.id);
-            return localMail? { ...localMail, ...mail } : { ...mail}
-          });
-          return mergedWithLocal;
-        }
-        return list;
-        
+    // Filter based on the current filter
+    const localListTemp = (() => {
+      switch (filter) {
+        case "favorite":
+          return localList.filter((mail) => mail.favorite === true);
+        case "read":
+          return localList.filter((mail) => mail.read === true);
+        case "unread":
+          return list.reduce((acc: emailMetaData[], current) => {
+            const unreadId = localList.every((mail) => mail.id != current.id ) 
+            if(unreadId){
+              (typeof current.id === "string") ? acc.push({id: parseInt(current.id)}) : acc.push({id: current.id}) 
+            }
+            return acc
+          },[])
+        default:
+          return localList;
+      }
+    })();
+
+    console.log("filter is: " , filter);
+    console.log(localListTemp);
+    if (localListTemp.length === 0) return [];
+    // Merge with `list` based on matching `id`s
+    const mergedWithLocal = () => {
+      const allMails = list.map(mail => {
+        const localMail = localListTemp.find((lm) => lm.id == mail.id);
+        return localMail ? { ...localMail, ...mail }: {...mail}
+      })
+      const filteredMails = list.reduce((acc, mail) => {
+      const localMail = localListTemp.find((lm) => lm.id == mail.id);
+      if (localMail) {
+        acc.push({ ...localMail, ...mail }); // Push only valid merged objects
+      }
+      return acc;
+    }, [] as typeof list);
+    return filter === "allMails"? allMails: filteredMails
     }
-)
+    return mergedWithLocal() as Email[];
+  }
+);
+
 
 export default function Master() {
 
-  console.log("Maaaassster")
 
   const master = useSelector(masterSelector);
   const list = useSelector(selectAllEmails);

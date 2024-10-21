@@ -15,7 +15,7 @@ export interface Email {
 
 export async function fetchAllEmails(page: number) {
 
-    const response = await fetch(`https://flipkart-email-mock.now.sh/?page=${page}`);
+    const response = await fetch(`http://localhost:5000/?page=${page}`);
     const { list }: { list: Email[] } = await response.json();
     // console.log(list);
     // const localEmailsData = fetchDataFromLocalStorage()
@@ -33,7 +33,7 @@ export async function fetchAllEmails(page: number) {
 
 export async function fetchEmailById(id: number | string) {
     try {
-        const response = await fetch(`https://flipkart-email-mock.now.sh/?id=${id}`)
+        const response = await fetch(`http://localhost:5000/?id=${id}`)
         const parsedRespose = await response.json();
         
 
