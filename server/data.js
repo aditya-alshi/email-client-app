@@ -110,7 +110,7 @@
 const emailBodies = [
   {
     id: 1,
-    body: "<div><p>Hello John,</p><p>This is a reminder for the meeting scheduled at 10 AM tomorrow. Please make sure to be on time.</p><p>Best regards,<br>Team</p></div>"
+    body: "<div><p>Hello John,</p><p>This is a reminder for the important meeting scheduled at 10 AM tomorrow. Please make sure to be on time.</p><p>Best regards,<br>Team</p></div>"
   },
   {
     id: 2,
