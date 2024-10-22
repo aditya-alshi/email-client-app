@@ -11,7 +11,7 @@ const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 
-store.dispatch(emailThunk(1));
+store.dispatch(emailThunk(null));
 // Use Redux Provider
 
 root.render(

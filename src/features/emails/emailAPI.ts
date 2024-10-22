@@ -13,9 +13,9 @@ export interface Email {
     short_description: string
 }
 
-export async function fetchAllEmails(page: number) {
+export async function fetchAllEmails(page: number | null) {
 
-    const response = await fetch(`http://localhost:5000/?page=${page}`);
+    const response = await fetch(`https://server-sigma-ashy.vercel.app/${page?"?page=" + page: ""}`);
     const { list }: { list: Email[] } = await response.json();
     // console.log(list);
     // const localEmailsData = fetchDataFromLocalStorage()
@@ -33,7 +33,7 @@ export async function fetchAllEmails(page: number) {
 
 export async function fetchEmailById(id: number | string) {
     try {
-        const response = await fetch(`http://localhost:5000/?id=${id}`)
+        const response = await fetch(`https://server-sigma-ashy.vercel.app/?id=${id}`)
         const parsedRespose = await response.json();
         
 

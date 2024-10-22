@@ -5,7 +5,7 @@ import { RootState } from "../../app/store";
 import { emailMetaData } from "../../utils/persistantStorage";
 
 
-export const emailThunk = createAsyncThunk('emails/allMails', async (page:number) => {
+export const emailThunk = createAsyncThunk('emails/allMails', async (page:number | null) => {
     const result = await fetchAllEmails(page);
     return result;
 })

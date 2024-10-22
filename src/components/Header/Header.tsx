@@ -1,10 +1,12 @@
 import { useDispatch, useSelector } from "react-redux"
 import { chageFilter, selectFilter } from "../../features/filters/filterSlice"
+import { AppDispatch, store } from "../../app/store";
+import { emailThunk } from "../../features/emails/emailSlice";
 
 
 
 export default function Header() {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const filter = useSelector(selectFilter)
     return (
         <header >
@@ -22,18 +24,21 @@ export default function Header() {
                         className={`${filter === "read" ? "bg-accent text-white": ""}`}
                         onClick={() => {
                             dispatch(chageFilter({filterOption:"read"}))
+                            dispatch((emailThunk(null)))
                         }}
                     >Read</li>
                     <li
                         className={`${filter === "unread" ? "bg-accent text-white": ""}`}
                         onClick={() => {
                             dispatch(chageFilter({filterOption:"unread"}))
+                            dispatch((emailThunk(null)))
                         }}
                     >Unread</li>
                     <li
                         className={`${filter === "favorite" ? "bg-accent text-white": ""}`}
                         onClick={() => {
                             dispatch(chageFilter({filterOption:"favorite"}))
+                            dispatch((emailThunk(null)))
                         }}
                     >Favorites</li>
                 </ul>
