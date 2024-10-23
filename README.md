@@ -44,3 +44,18 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
+
+
+## Breakdown
+
+**This is going to be a top down approch for explaining**
+
+There are three primary sections you can see 
+
+This was the Project requirement: [Build an email client app like Outlook](https://docs.google.com/document/d/1EKya563ydPN1kSXA6WWeg9i63LxKVjeP8kLD4IMwano/edit?usp=sharing)
+
+- Filter section
+- List of mails section 
+- Mail body section
+
+

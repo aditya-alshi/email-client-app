@@ -5,102 +5,110 @@ import {
   selectTotalPages,
   setPage,
   emailThunk,
-  selectMetaEmails,
 } from "../../../features/emails/emailSlice";
-import { selectAllEmails } from "../../../features/emails/emailSlice";
 import {
   emailBodyThunk,
   removeSlaveId,
   selectSlaveId,
 } from "../../../features/emails/slaveSlice";
-import {
-  emailMetaData
-} from "../../../utils/persistantStorage"
+import { emailMetaData } from "../../../utils/persistantStorage";
 import { AppDispatch, RootState } from "../../../app/store";
 import { format } from "date-fns";
-import { selectFilter } from "../../../features/filters/filterSlice";
 import { createSelector } from "@reduxjs/toolkit";
 import { Email } from "../../../features/emails/emailAPI";
 
+// the masterSelector
+// get the email list, emailMeta, and filter. And produce a final array for emails.
 const masterSelector = createSelector(
-  (state: RootState) => state.emails.emails,
-  (state: RootState) => state.emails.emailMeta,
-  (state: RootState) => state.filter.filter,
+  (state: RootState) => state.emails.emails, // All original emails
+  (state: RootState) => state.emails.emailMeta, // the meta stored in the local storage (see the emailSlice for logic about emailMeta)
+  (state: RootState) => state.filter.filter, // The filter
 
   (list, localList, filter) => {
-    if (!localList || localList.length === 0) return list;
+    if (!localList || localList.length === 0) return list; // if there is no local storage yet. Just return the list
 
-    
     // Filter based on the current filter
+    // The idea here is to filter out the Local storage meta
+    // And then get the final result of the filter and store it in some variable
+    // now get that new filtered data and merge it with the original list of mail.
+    // So basically you just check if the current orginal mail Id exist in that filtered resulted local
+    // storage mail ids
+
+    // So this localListTemp is that 'some variable' discussed above
     const localListTemp = (() => {
+      // A simple switch logic
       switch (filter) {
+        // For favorite and read the logic is straight forward.
         case "favorite":
           return localList.filter((mail) => mail.favorite === true);
         case "read":
           return localList.filter((mail) => mail.read === true);
         case "unread":
+          // For unread mails we will loop through the original mail array itself
+          // We will use .reduce for this. the accumulator will be an array. Which will contain
+          // the array of ids [{id: 1}, {id : 6}]
+          // So to filter out the unread mail, which basically means
+          // grab each mail from original list and check in the localList(original not localListTemp)
+          // if the id exist there somewhere
+          // if not push it to the localListTemp.
+          // the localList keeps account of read mail. so if the mail id is not present in the localList, it's not read.
           return list.reduce((acc: emailMetaData[], current) => {
-            const unreadId = localList.every((mail) => mail.id != current.id ) 
-            if(unreadId){
-              (typeof current.id === "string") ? acc.push({id: parseInt(current.id)}) : acc.push({id: current.id}) 
+            const unreadId = localList.every((mail) => mail.id != current.id); // .every is used
+            if (unreadId) {
+              typeof current.id === "string"
+                ? acc.push({ id: parseInt(current.id) })
+                : acc.push({ id: current.id });
             }
-            return acc
-          },[])
+            return acc;
+          }, []);
         default:
-          return localList;
+          return localList; // this say if the filter is anything else("all mails") return the origianl localList
       }
     })();
 
-    console.log("filter is: " , filter);
-    console.log(localListTemp);
-    if (localListTemp.length === 0) return [];
-    // Merge with `list` based on matching `id`s
+    if (localListTemp.length === 0) return []; // this handle if the the filter is selected but
+    // There is no single id present for it in the localStorage. 
+    // For example if not a single mail is favorited, then upon clicking the favorite filter, an empty array will be returned. 
+
+    // When the LocalListTemp is not empty (Either read or favorited or unread ids are present or 
+    // the all mail is selected which means now the localListTemp is mirror reflection of the original localList),
+    // Merge with original `list` based on matching `id`s
+
     const mergedWithLocal = () => {
-      const allMails = list.map(mail => {
+
+      // So there are two situations to handle here.
+      // 1. all mails
+      // 2. Filtered
+
+      // If "allMails" are selected, then we want to merge not just the correct localListTemp individual mail,
+      // But also the remaining mails too. So basically, obviously 'all mails'
+      const allMails = list.map((mail) => {
         const localMail = localListTemp.find((lm) => lm.id == mail.id);
-        return localMail ? { ...localMail, ...mail }: {...mail}
-      })
+        return localMail ? { ...localMail, ...mail } : { ...mail };
+      });
+
+      // if 'some filter is there', then we specifically want just the filtered one.
+      // reject all rest of the mails from the original list
       const filteredMails = list.reduce((acc, mail) => {
-      const localMail = localListTemp.find((lm) => lm.id == mail.id);
-      if (localMail) {
-        acc.push({ ...localMail, ...mail }); // Push only valid merged objects
-      }
-      return acc;
-    }, [] as typeof list);
-    return filter === "allMails"? allMails: filteredMails
-    }
-    return mergedWithLocal() as Email[];
+        const localMail = localListTemp.find((lm) => lm.id == mail.id);
+        if (localMail) {
+          acc.push({ ...localMail, ...mail }); 
+        }
+        return acc;
+      }, [] as typeof list);
+      return filter === "allMails" ? allMails : filteredMails; // and we return the result out of the filter is "all mail" or not.
+    };
+    return mergedWithLocal() as Email[]; // Final result is one of , empty/allmails/filtered
   }
 );
 
-
 export default function Master() {
-
-
   const master = useSelector(masterSelector);
-  const list = useSelector(selectAllEmails);
-  const localEmailsData = useSelector(selectMetaEmails);
   const slaveId = useSelector(selectSlaveId);
   const currentPage = useSelector(selectCurrentPage);
   const totalPages = useSelector(selectTotalPages);
-  const filter = useSelector(selectFilter);
-
 
   const dispatch: AppDispatch = useDispatch();
-
-  // const allMails = () => {
-  //   if (localEmailsData && localEmailsData.length > 0) {
-  //     const mergedWithLocal = list.map((mail) => {
-  //       const localMail = localEmailsData.find((lm) => lm.id == mail.id);
-  //       return { ...localMail, ...mail }
-  //     });
-  //     return mergedWithLocal;
-  //   }
-  //   return list;
-  // };
-
-  
-
 
   const renderMails = master.map((mail) => {
     const date = new Date(mail.date || Date.now());
@@ -115,7 +123,13 @@ export default function Master() {
         key={mail.id}
         onClick={(e) => {
           dispatch(readAnEmail({ id: mail.id, read: true }));
-          dispatch(emailBodyThunk({ id: mail.id, date: mail.date, favorite: mail.favorite || false }));
+          dispatch(
+            emailBodyThunk({
+              id: mail.id,
+              date: mail.date,
+              favorite: mail.favorite || false,
+            })
+          );
         }}
       >
         <div className="flex justify-center items-center w-12 h-12 rounded-full bg-accent text-white text-2xl font-semibold aspect-square">
@@ -151,7 +165,9 @@ export default function Master() {
             >
               {formattedDate}
             </p>
-            <p className="text-accent font-semibold mr-auto ">{mail.favorite? "Favorite": ""}</p>
+            <p className="text-accent font-semibold mr-auto ">
+              {mail.favorite ? "Favorite" : ""}
+            </p>
           </div>
         </div>
       </div>

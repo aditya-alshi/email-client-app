@@ -4,7 +4,6 @@ import './index.css';
 import { Provider } from 'react-redux';
 import { store } from './app/store';
 import App from './App';
-import { fetchAllEmails, fetchEmailById } from './features/emails/emailAPI';
 import { emailThunk } from './features/emails/emailSlice';
 
 const root = ReactDOM.createRoot(
@@ -12,7 +11,6 @@ const root = ReactDOM.createRoot(
 );
 
 store.dispatch(emailThunk(null));
-// Use Redux Provider
 
 root.render(
   <React.StrictMode>
@@ -22,4 +20,5 @@ root.render(
   </React.StrictMode>
 );
 
+// On the initial load the store.dispatch(emailThunk(null)) will be called [checkout the thunk funtion in the emailSlice.ts]
 

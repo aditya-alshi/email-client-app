@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
 import { fetchEmailById } from "./emailAPI";
 import { RootState } from "../../app/store";
 
+// Slave is suppose to display the body of the email
 export const emailBodyThunk = createAsyncThunk('slave/fetchEmailBody', async ({id, date, favorite}:{id : number | string , date:Date, favorite: boolean} ) => {
     const response = await fetchEmailById(id);
     return {response, date, favorite }
